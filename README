@@ -1,0 +1,48 @@
+# API — Project
+
+Short, clear instructions for working with the project environment and dependencies.
+
+---
+
+## Prerequisites
+- Python 3.13 installed
+- Git (optional)
+- PowerShell (on Windows) or another shell
+
+---
+
+## Setup
+
+1. (Optional) Create a virtual environment
+```powershell
+python -m venv env
+```
+
+2. Activate the environment (PowerShell)
+```powershell
+.\env\Scripts\Activate.ps1
+```
+- Windows CMD:
+```cmd
+.\env\Scripts\activate
+```
+- Git Bash / WSL:
+```bash
+source env/Scripts/activate
+```
+
+3. Install dependencies
+```powershell
+pip install -r requirements.txt
+```
+
+---
+
+## Notes
+- Keep the virtual environment out of source control (add `env/` to .gitignore).
+- If activation is blocked by PowerShell execution policy, run PowerShell as Administrator and allow scripts:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+---
