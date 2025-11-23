@@ -2,10 +2,11 @@ from fastapi import Depends, FastAPI
 from typing import List
 
 # import BL functions with different local names to avoid shadowing
-from src.models.EmpModel import Employee, EmployeeResponse
-from src.businessLogic.EmployeeBL import get_employee_data as bl_get_employee_data, create_employee as bl_create_employee, get_employee_list
+from src.services.EmployeeBL import EmployeeBL
+from src.schemas.EmpSchema import Employee, EmployeeResponse
 
 app = FastAPI()
+
 # @app.get("/employee",tags=["Employees"])
 # def get_books(limit: int | None = None):
 #     """Get all books, optionally limited by count."""
@@ -14,8 +15,9 @@ app = FastAPI()
 #     return {"books": books}
 
 @app.get("/employee/{employee_id}", tags=["Employees"])
-def get_employee(employee_id: int, employee_data: Employee = Depends(bl_get_employee_data)):
+def get_employee(employee_id: int, bl: Employee = Depends(EmployeeBL)):
     """Get a specific employee by ID."""
+    employee_data = bl.get_employee_data(employee_id)
     if employee_data:
         return EmployeeResponse(
             name=employee_data.name,
@@ -26,8 +28,9 @@ def get_employee(employee_id: int, employee_data: Employee = Depends(bl_get_empl
     return {"error": "Employee not found"}
 
 @app.get("/employees", tags=["Employees"],response_model=List[EmployeeResponse])
-def get_employees(employee_list: List[Employee] = Depends(get_employee_list)):
+def get_employees(bl: EmployeeBL = Depends(EmployeeBL)):
     """Get a list of all employees."""
+    employee_list = bl.get_employee_list()
     response = []
     for emp in employee_list:
         response.append(EmployeeResponse(
@@ -39,8 +42,9 @@ def get_employees(employee_list: List[Employee] = Depends(get_employee_list)):
     return response
 
 @app.post("/employee", tags=["Employees"], response_model=EmployeeResponse)
-def create_employee_endpoint(employee: Employee, created: Employee = Depends(bl_create_employee)):
+def create_employee_endpoint(employee: Employee, bl: EmployeeBL = Depends(EmployeeBL)):
     """Create a new employee entry."""
+    created = bl.create_employee(employee)
     return EmployeeResponse(
         name=created.name,
         last_name=created.last_name,
