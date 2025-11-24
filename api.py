@@ -19,10 +19,10 @@ Base.metadata.create_all(bind=engine)
 #         return {"books": books[:limit]}
 #     return {"books": books}
 
-@app.get("/employee/{employee_id}", tags=["Employees"])
-def get_employee(employee_id: int, bl: Employee = Depends(EmployeeBL)):
-    """Get a specific employee by ID."""
-    employee_data = bl.get_employee_data(employee_id)
+@app.get("/employee/{employee_email}", tags=["Employees"])
+def get_employee_by_email(employee_email: str, bl: EmployeeBL = Depends(EmployeeBL), db: Session = Depends(get_db)):
+    """Get a specific employee by email."""
+    employee_data = bl.get_employee_by_email(employee_email, db)
     if employee_data:
         return EmployeeResponse(
             name=employee_data.name,

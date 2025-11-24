@@ -11,16 +11,21 @@ class EmployeeBL:
     def __init__(self):
         pass
             
-    def get_employee_data(self, id: int = None) -> Employee:
-        # Perform some logic with the user data
-        if id is not None:
-            for emp in employees:
-                print(f"Fetching employee data for ID: {id}")
-
-            if emp.id == id:
-                return emp
-        return None
-
+    def get_employee_by_email(self, email: str , db: Session) -> Employee:
+        user=db.query(UserDB).filter(UserDB.email == email).first()
+        if user is not None:
+            employee=Employee(
+                id=user.id,
+                name=user.name,
+                last_name=user.last_name,
+                email=user.email,
+                password=user.hashed_password,
+                user_type=EmployeeType[user.user_type]
+            )
+            return employee
+        else:
+            return None
+        
     def get_employee_list(self, db: Session) -> list[Employee]:
         all_users=db.query(UserDB).all()
         employees=[]
