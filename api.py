@@ -1,14 +1,17 @@
 from http.client import HTTPException
 from fastapi import Depends, FastAPI,status
 from typing import List
+from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm
 
-# import BL functions with different local names to avoid shadowing
+from src.repositories.database import get_db
 from src.services.EmployeeBL import EmployeeBL
-from src.schemas.EmpSchema import Employee, EmployeeResponse, UserAuth, UserOut
-from src.utils.auth import get_hashed_password
-
+from src.schemas.EmpSchema import Employee, EmployeeResponse, TokenSchema, UserAuth, UserOut
+from src.utils.auth import create_access_token, create_refresh_token, get_hashed_password, verify_password
+from src.repositories.database import Base, engine
 app = FastAPI()
 
+Base.metadata.create_all(bind=engine)
 # @app.get("/employee",tags=["Employees"])
 # def get_books(limit: int | None = None):
 #     """Get all books, optionally limited by count."""
@@ -30,9 +33,9 @@ def get_employee(employee_id: int, bl: Employee = Depends(EmployeeBL)):
     return {"error": "Employee not found"}
 
 @app.get("/employees", tags=["Employees"],response_model=List[EmployeeResponse])
-def get_employees(bl: EmployeeBL = Depends(EmployeeBL)):
+def get_employees(bl: EmployeeBL = Depends(EmployeeBL), db: Session = Depends(get_db)):
     """Get a list of all employees."""
-    employee_list = bl.get_employee_list()
+    employee_list = bl.get_employee_list(db)
     response = []
     for emp in employee_list:
         response.append(EmployeeResponse(
@@ -44,9 +47,9 @@ def get_employees(bl: EmployeeBL = Depends(EmployeeBL)):
     return response
 
 @app.post("/employee", tags=["Employees"], response_model=EmployeeResponse)
-def create_employee_endpoint(employee: Employee, bl: EmployeeBL = Depends(EmployeeBL)):
+def create_employee_endpoint(employee: Employee, bl: EmployeeBL = Depends(EmployeeBL), db: Session = Depends(get_db)):
     """Create a new employee entry."""
-    created = bl.create_employee(employee)
+    created = bl.create_employee(employee,db)
     return EmployeeResponse(
         name=created.name,
         last_name=created.last_name,
@@ -69,3 +72,24 @@ async def signup(data: UserAuth, serviceEmployee: EmployeeBL = Depends(EmployeeB
         'id': 12
     }
     return user
+
+@app.post('/login', summary="Create access and refresh tokens for user", response_model=TokenSchema)
+async def login(form_data: OAuth2PasswordRequestForm = Depends(), serviceEmployee: EmployeeBL = Depends(EmployeeBL)):
+    user = serviceEmployee.login_user(form_data.username, form_data.password)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password"
+        )
+    
+    hashed_pass = form_data.password
+    if not verify_password(form_data.password, hashed_pass):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password"
+        )
+
+    return {
+        "access_token": create_access_token(user['email']),
+        "refresh_token": create_refresh_token(user['email']),
+    }
