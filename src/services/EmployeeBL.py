@@ -1,3 +1,4 @@
+import json
 from src.schemas.EmpSchema import Employee
 
 employees=[]
@@ -24,3 +25,22 @@ class EmployeeBL:
         # Logic to create a new employee
         employees.append(employee)
         return employee
+    
+    def signup_user(self, user_data):
+        # Logic to sign up a new user
+        employees=[]
+        user=None
+        try:
+            with open("users.json", "r") as file:
+                usersMocks = json.load(file)
+            
+            for user in usersMocks:
+                employees.append(Employee(**user))
+            
+            for emp in employees:
+                if emp.email == user_data.email:
+                    user = emp
+                    break       
+        except json.JSONDecodeError:
+            print("Error: Could not decode JSON from 'example.json'. Check file format.")
+        return user

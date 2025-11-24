@@ -1,9 +1,11 @@
-from fastapi import Depends, FastAPI
+from http.client import HTTPException
+from fastapi import Depends, FastAPI,status
 from typing import List
 
 # import BL functions with different local names to avoid shadowing
 from src.services.EmployeeBL import EmployeeBL
-from src.schemas.EmpSchema import Employee, EmployeeResponse
+from src.schemas.EmpSchema import Employee, EmployeeResponse, UserAuth, UserOut
+from src.utils.auth import get_hashed_password
 
 app = FastAPI()
 
@@ -51,3 +53,19 @@ def create_employee_endpoint(employee: Employee, bl: EmployeeBL = Depends(Employ
         email=created.email,
         user_type=created.user_type
     )
+
+@app.post('/signup', tags=["Login"], summary="Log in user", response_model=UserOut)
+async def signup(data: UserAuth, serviceEmployee: EmployeeBL = Depends(EmployeeBL)):
+    # querying database to check if user already exist
+    user = serviceEmployee.signup_user(data)
+    if user is None:
+            raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exist"
+        )
+    user = {
+        'email': user.email,
+        'password': get_hashed_password(user.password),
+        'id': 12
+    }
+    return user

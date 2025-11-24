@@ -18,3 +18,12 @@ class EmployeeResponse(BaseModel):
     last_name: str
     email: str
     user_type: EmployeeType
+
+class UserAuth(BaseModel):
+    email: str = Field(pattern=r".+@example\.com$")
+    password: str = Field(min_length=1, max_length=200, repr=False)
+
+class UserOut(BaseModel):
+    email: str
+    id: int
+    password: str
