@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Enum, Integer, String
+from src.schemas.EmpSchema import EmployeeType
 from src.repositories.database import Base
 
 class UserDB(Base):
@@ -9,4 +10,4 @@ class UserDB(Base):
     last_name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    user_type = Column(String, nullable=False)  # Could be 'admin' or 'client' corresponding to EmployeeType    
+    user_type = Column(Enum(EmployeeType))  # Could be 'admin' or 'client' corresponding to EmployeeType    

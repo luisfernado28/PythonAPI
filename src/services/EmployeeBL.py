@@ -20,7 +20,7 @@ class EmployeeBL:
                 last_name=user.last_name,
                 email=user.email,
                 password=user.hashed_password,
-                user_type=EmployeeType[user.user_type]
+                user_type=user.user_type
             )
             return employee
         else:
@@ -36,7 +36,7 @@ class EmployeeBL:
                 last_name=user.last_name,
                 email=user.email,
                 password=user.hashed_password,
-                user_type=EmployeeType[user.user_type]
+                user_type=user.user_type
             )
             employees.append(user)
 
@@ -56,25 +56,6 @@ class EmployeeBL:
         db.commit()
         db.refresh(new_user)
         return employee
-    
-    def signup_user(self, user_data):
-        # Logic to sign up a new user
-        employees=[]
-        user=None
-        try:
-            with open("users.json", "r") as file:
-                usersMocks = json.load(file)
-            
-            for user in usersMocks:
-                employees.append(Employee(**user))
-            
-            for emp in employees:
-                if emp.email == user_data.email:
-                    user = emp
-                    break       
-        except json.JSONDecodeError:
-            print("Error: Could not decode JSON from 'example.json'. Check file format.")
-        return user
     
     def login_user(self, email: str, password: str):
         # Logic to log in a user

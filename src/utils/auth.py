@@ -11,7 +11,6 @@ JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 JWT_REFRESH_SECRET_KEY = os.environ.get("JWT_REFRESH_SECRET_KEY") 
 password_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-
 def get_hashed_password(password: str) -> str:
     return password_context.hash(password)
 
